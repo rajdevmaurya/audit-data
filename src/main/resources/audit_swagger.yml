@@ -1,0 +1,19 @@
+openapi: "3.0.0"
+info:
+  version: "1.0.0"
+  title: "AUDIT API SERVICE"
+tags:
+- name : "AUDIT"
+  description: "API for Nseed Store"
+servers:
+  - url: http://localhost:8081/v1
+paths:
+  /audit/triggerPricingRequest:
+    get:
+      tags:
+        - "AUDIT"
+      summary: "Return search summary details"
+      operationId: "triggerPricingRequest"
+      responses:
+          "200":
+             description: "OK"

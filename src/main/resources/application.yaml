@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 9990
 spring:
   application:
     name: AUDIT-DATA
@@ -15,7 +15,7 @@ spring:
       ddl-auto: create-drop
     properties:
       hibernate:
-        show_sql: true
+        show_sql: false
         use_sql_comments: true
         format_sql: true
   h2:

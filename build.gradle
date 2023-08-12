@@ -1,33 +1,96 @@
-plugins {
-	id 'org.springframework.boot' version '2.4.4'
-	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-	id 'java'
+buildscript {
+
+ext {
+	set('springBootVersion',"2.1.9.RELEASE")
+	set('springBootStarterConfigVerson',"2.4.2.RELEASE")
+	set('mavenAssemblyVersion',"3.1.1")
+	set('gitGradlePluginVersion',"1.4.17")
+	set('springGradlePluginVersion',"1.0.2.RELEASE")
+	set('springStarterConfigVersion',"2.1.2.RELEASE")
+	set('openApiGeneratorVersion',"4.2.3")
+	set('swagger_annotations_version',"1.5.14")
+	set('springContractGradleVersion',"2.2.5.RELEASE")
+	
 }
-
-group = 'com.demo'
-version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '1.8'
-
-configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
-}
-
 repositories {
-	mavenCentral()
+  mavenCentral()
+  jcenter()
 }
+
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	compileOnly 'org.projectlombok:lombok'
-	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-	runtimeOnly 'com.h2database:h2'
-	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+      classpath ("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+      classpath ("io.spring.gradle:dependency-management-plugin:${springGradlePluginVersion}")
+      classpath ("gradle.plugin.com.gorylenko.gradle-git-properties:gradle-git-properties:${gitGradlePluginVersion}") 
+      classpath ("org.openapitools:openapi-generator-gradle-plugin:${openApiGeneratorVersion}")
+      classpath ("org.springframework.cloud:spring-cloud-contract-gradle-plugin:${springContractGradleVersion}")
+      classpath 'org.junit.platform:junit-platform-gradle-plugin:1.0.2' 
+     }
+}
+plugins {
+    id 'idea'
+    id 'java'
+    id 'java-library'
+	id 'maven'
+	id 'maven-publish'
+	id 'eclipse'
+	id 'org.springframework.boot' version '2.1.8.RELEASE'
+	id 'io.spring.dependency-management' version '1.0.8.RELEASE'
 }
 
-test {
-	//useJUnitPlatform()
+apply plugin: 'org.openapi.generator'
+
+group = 'com.demo.audit'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+archivesBaseName='audit-data'
+
+apply from : "$rootDir/gradlebuild/deployment.gradle"
+apply from : "$rootDir/gradlebuild/dependencies.gradle"
+apply from : "$rootDir/gradlebuild/ditribute.gradle"
+
+dependencyManagement {
+	imports {
+	}
 }
+def buildTime() {
+}
+springBoot {
+   buildInfo {
+        }
+  mainClassName = 'com.demo.audit.AuditDataApplication'
+}
+
+task buildApiCode(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask){
+    generatorName = "spring"
+    inputSpec = "$rootDir/src/main/resources/audit_swagger.yml".toString()
+    outputDir = "$buildDir/generated".toString() 
+    apiPackage = "com.demo.audit.api"
+    modelPackage = "com.demo.audit.api.model"
+    enablePostProcessFile = true
+    configOptions = [
+            configPackage : "com.demo.audit.api.config",
+            id  :                     "$project.name-java-client",
+            java8         : "true",
+            dateLibrary   : "java8",
+            serializationLibrary : "jackson",
+            useBeanValidation : "false",
+            interfaceOnly     : "false",
+            serializableModel :"true",
+            useTags           : "true",
+            delegatePattern : "true",
+            generateApiTests : "true",
+            validateSpace    : "true"
+      ]
+}
+compileJava.dependsOn(buildApiCode)
+
+sourceSets {
+     main {
+           java{
+                  srcDir "$buildDir/generated/src/main/java"
+            }
+      }
+}
+
